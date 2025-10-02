@@ -77,15 +77,6 @@ const submit = () => {
         }
     })
 }
-const searchId = ref('')
-const filteredCategory = computed(() => {
-    if (!this.searchId) return this.tasks.data;
-
-    return this.tasks.data.filter((categories) =>
-        categories.id.toString().includes(this.searchId.trim())
-    );
-})
-
 
 const date = ref('') // v-model on input
 
@@ -191,6 +182,16 @@ const handleConfirm = () => {
         }
     })
 }
+
+const filters2 = ref({
+    category: props.filters.category || '',
+})
+const search = () => {
+    router.get('/tasks', { category: filters2.value.category }, {
+        preserveState: true,
+        replace: true,
+    })
+}
 </script>
 
 
@@ -209,8 +210,9 @@ const handleConfirm = () => {
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Filter by Category:</label>
                         <input
-                            v-model="searchId"
-                            type="text"
+                            v-model="filters2.category"
+                            @input="search"
+
                             placeholder="Enter Category "
                             class="mt-1 px-3 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />

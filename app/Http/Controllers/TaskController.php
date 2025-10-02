@@ -16,42 +16,61 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        // Allow sorting by 'name' or 'created_at' with direction
-        $sortField = in_array($request->input('sort'), ['title', 'created_at']) ? $request->input('sort') : 'created_at';
-        $sortDirection = $request->input('direction') === 'asc' ? 'asc' : 'desc';
-        $category =Category::all();
-
         $today = \Carbon\Carbon::today();
-        $soonThreshold = \Carbon\Carbon::today()->addDays(3);
-        $task = Task::query()
-            ->join('categories', 'tasks.category_id', '=', 'categories.id')
-            ->select('tasks.*', 'categories.title as category_title') // Add category name to results
-            ->orderBy($sortField, $sortDirection)
-            ->paginate(5)
-            ->withQueryString();
+        $soonThreshold = $today->copy()->addDays(3);
 
-        $task->getCollection()->transform(function ($task) use ($today, $soonThreshold) {
-            $dueDate = \Carbon\Carbon::parse($task->due_date);
+        // Optional: default sort field/direction
+        $sortField = $request->get('sort', 'due_date');
+        $sortDirection = $request->get('direction', 'asc');
 
-            if ($dueDate->isPast() && !$dueDate->isToday()) {
-                $task->due_status = 'Over due';
-            } elseif ($dueDate->isToday()) {
-                $task->due_status = 'Due Today';
-            } elseif ($dueDate->between($today, $soonThreshold)) {
-                $task->due_status = 'Due Soon';
-            } else {
-                $task->due_status = 'Upcoming';
-            }
+        // Get search filters from request
+        $categoryId = $request->get('category');
 
-            return $task;
-        });
+        // Build the query
+        $query = Task::query()
+            ->leftJoin('categories', 'tasks.category_id', '=', 'categories.id')
+            ->select('tasks.*', 'categories.title as category_title');
 
+        if (!empty($categoryId)) {
+            $query->where('categories.title', 'like', '%' . $categoryId . '%');
 
+        }
 
+        // Apply sorting
+        $query->orderBy($sortField, $sortDirection);
+
+        // Paginate and retain query string
+        $tasks = $query->paginate(5)->withQueryString();
+
+        // Apply due status transformation
+        $tasks->setCollection(
+            $tasks->getCollection()->transform(function ($task) use ($today, $soonThreshold) {
+
+                $dueDate = \Carbon\Carbon::parse($task->due_date);
+
+                if ($dueDate->isPast() && !$dueDate->isToday()) {
+                    $task->due_status = 'Over due';
+                } elseif ($dueDate->isToday()) {
+                    $task->due_status = 'Due Today';
+                } elseif ($dueDate->between($today, $soonThreshold)) {
+                    $task->due_status = 'Due Soon';
+                } else {
+                    $task->due_status = 'Upcoming';
+                }
+
+                return $task;
+            })
+        );
+
+        // Return to Inertia view
         return Inertia::render('Tasks/Index', [
-            'tasks' => $task,
-            'categories' => $category,
-            'filters' => $request->only(['sort', 'direction']),
+            'tasks' => $tasks,
+            'filters' => [
+                'category_id' => $categoryId,
+                'sort' => $sortField,
+                'direction' => $sortDirection,
+            ],
+            'categories' => \App\Models\Category::all(), // for dropdown list
         ]);
 
     }
