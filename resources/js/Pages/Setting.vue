@@ -11,16 +11,16 @@ import {Head, Link} from '@inertiajs/vue3';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 </script>
 <template>
-    <Head title="Dashboard" />
+    <Head title="Settings" />
     <div class="flex bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen font-sans">
         <LayoutHeader/>
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
             <!-- Top Navbar -->
-            <SubHeader title="Dashboard"/>
+            <SubHeader title="Settings"/>
             <!-- Page Content -->
 
-            Dashboard
+            Settings
         </div>
         <LayoutHeaderMobile/>
     </div>
