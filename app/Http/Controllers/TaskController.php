@@ -24,11 +24,12 @@ class TaskController extends Controller
         $today = \Carbon\Carbon::today();
         $soonThreshold = \Carbon\Carbon::today()->addDays(3);
         $task = Task::query()
+            ->join('categories', 'tasks.category_id', '=', 'categories.id')
+            ->select('tasks.*', 'categories.title as category_title') // Add category name to results
             ->orderBy($sortField, $sortDirection)
             ->paginate(5)
             ->withQueryString();
 
-        // Step 2: Add due_status to each task in the paginated collection
         $task->getCollection()->transform(function ($task) use ($today, $soonThreshold) {
             $dueDate = \Carbon\Carbon::parse($task->due_date);
 
@@ -44,6 +45,7 @@ class TaskController extends Controller
 
             return $task;
         });
+
 
 
         return Inertia::render('Tasks/Index', [
@@ -116,11 +118,30 @@ class TaskController extends Controller
     }
 
 
+    public function categoryUpdate(Request $request,$id)
+    {
+
+        $request->validate([
+            'category_id' => 'required',
+        ]);
+
+        $task = Task::findOrFail($id);
+        $task->update([
+            'category_id' =>  $request->input('category_id')
+        ]);
+        return response()->json([
+            'message' => 'Task Category updated successfully',
+            'task' => $task
+        ]);
+    }
+
+
+
     public function completedUpdate(Request $request,$id)
     {
 
         $task = Task::findOrFail($id);
-        
+
         $task->update([
             'is_done' => !empty($request->is_done) ? 0 : 1
         ]);

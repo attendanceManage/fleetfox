@@ -13,8 +13,9 @@
                 Assign Category To Task
             </div>
             <div>
+
                 <form @submit.prevent="submitEdit">
-                    <select v-model="task.category_id" class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select v-model="form.category_id" class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option v-for="cate in category" :key="cate.id" :value="cate.id">
                             {{ cate.title }}
                         </option>

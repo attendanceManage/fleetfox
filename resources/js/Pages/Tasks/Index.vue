@@ -146,6 +146,20 @@ const handleSave = (updatedCategory) => {
     editModalVisible.value = false;
 }
 
+const handleCateSave = (updatedCategory) => {
+    updateuccessMessage.value = false;
+    const id = updatedCategory.id;
+
+    axios.patch(`/tasks/${id}/category`, updatedCategory)
+        .then(response => {
+            console.log('Success:', response);
+            updateuccessMessage.value = true;
+            emit('updateTask');
+            assignModalVisible.value = false;
+            location.reload();
+        });
+}
+
 
 const handleDropSave = (updatedCategory) => {
     updateuccessMessage.value = false;
@@ -193,11 +207,11 @@ const handleConfirm = () => {
             <div>
                 <div class="mx-auto max-w-full sm:px-6 sm:py-24 lg:max-w-7xl">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Filter by Category ID:</label>
+                        <label class="block text-sm font-medium text-gray-700">Filter by Category:</label>
                         <input
                             v-model="searchId"
                             type="text"
-                            placeholder="Enter Category ID"
+                            placeholder="Enter Category "
                             class="mt-1 px-3 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
@@ -392,14 +406,9 @@ const handleConfirm = () => {
                                         v-else>Inactive</span>
                                 </td>
                                 <td class="border border-gray-300 px-6 py-4">
-                                    <span
-                                        v-if="task.category_id==0">
-                                       -
-                                     </span>
-                                    <span
-                                        class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-gray-300 text-gray-700 bg-green-100 text-green-600"
-                                        v-else>
-                                       {{ task.category_id }}
+                                    <span>
+                                        {{task.category_title}}
+
                                      </span>
 
                                 </td>
@@ -467,7 +476,7 @@ const handleConfirm = () => {
                                     :show="assignModalVisible"
                                     :task="categoryToEdit"
                                     :category="categories"
-                                    @save="handleDropSave"
+                                    @save="handleCateSave"
                                     @cancel="assignModalVisible = false"
                                 />
 
