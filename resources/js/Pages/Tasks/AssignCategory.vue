@@ -58,11 +58,8 @@ export default {
     },
     watch: {
         task(newVal) {
-            this.form.title = newVal.title || "";
-            this.form.description = newVal.description || "";
-            this.form.status = (newVal.status==1)?false:true;
-            this.form.is_done = (newVal.status==1)?false:true;
-            this.form.due_date = newVal.due_date;
+
+            this.form.category_id = newVal.category_id;
         },
     },
     methods: {

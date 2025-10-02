@@ -17,6 +17,7 @@ import EditCategoryModal from "@/Pages/Tasks/Edit.vue";
 import ConfirmModalTask from "@/Components/ConfirmModal.vue";
 import EditCategoryToTask from "@/Pages/Tasks/AssignCategory.vue";
 import EditTaskDone from "@/Pages/Tasks/TaskDone.vue";
+
 const page = usePage()
 const props = defineProps({
     tasks: Object,
@@ -130,20 +131,33 @@ const assignModalVisible = ref(false)
 const openTaskDoneModalVisible = ref(false)
 
 
-
 const emit = defineEmits(['refreshCategories'])
 const handleSave = (updatedCategory) => {
-    updateuccessMessage.value=false;
+    updateuccessMessage.value = false;
     const id = updatedCategory.id;
-    axios.patch(   `/tasks/${id}`,updatedCategory)
+    axios.patch(`/tasks/${id}`, updatedCategory)
         .then(response => {
             console.log('Success:', response);
-            updateuccessMessage.value=true;
+            updateuccessMessage.value = true;
             emit('updateTask');
             location.reload();
         });
 
     editModalVisible.value = false;
+}
+
+
+const handleDropSave = (updatedCategory) => {
+    updateuccessMessage.value = false;
+    const id = updatedCategory.id;
+    axios.patch(`/tasks/${id}/completed`, updatedCategory)
+        .then(response => {
+            console.log('Success:', response);
+            updateuccessMessage.value = true;
+            emit('updateTask');
+            openTaskDoneModalVisible.value = false;
+            location.reload();
+        });
 }
 
 const deleteTask = (id => {
@@ -282,7 +296,7 @@ const handleConfirm = () => {
                             </template>
                         </Modal>
                         <Toast v-if="successMessage" message="Task created successfully!" type="success"/>
-                        <Toast v-if="successMessage" message="Task Updated successfully!" type="success"/>
+                        <Toast v-if="updateuccessMessage" message="Task Updated successfully!" type="success"/>
                         <Toast v-if="deleteMessage" message="Task Daleted successfully!" type="success"/>
 
                     </div>
@@ -313,6 +327,11 @@ const handleConfirm = () => {
                                     <div class="flex items-center space-x-1">
                                         <span>Due Date Status</span>
 
+                                    </div>
+                                </th>
+                                <th class="border border-gray-300 px-6 py-3 cursor-pointer select-none">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Is Complete</span>
                                     </div>
                                 </th>
                                 <th class="border border-gray-300 px-6 py-3 cursor-pointer select-none">
@@ -355,6 +374,16 @@ const handleConfirm = () => {
                                 <td class="border border-gray-300 px-6 py-4">
                             <span
                                 class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-gray-300 text-gray-700 bg-green-100 text-green-600"
+                                v-if="task.is_done==0">
+                                Completed
+                            </span>
+                                    <span
+                                        class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-gray-300 text-gray-500 text-red-600"
+                                        v-else>Pending</span>
+                             </td>
+                                <td class="border border-gray-300 px-6 py-4">
+                            <span
+                                class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-gray-300 text-gray-700 bg-green-100 text-green-600"
                                 v-if="task.status==0">
                                 Active
                             </span>
@@ -378,8 +407,9 @@ const handleConfirm = () => {
 
                                     <!-- Edit Button with Icon -->
                                     <button
-                                        class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-blue-950  text-blue-950" @click="openEdit(task)">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                        class="inline-block px-3 py-1 text-sm font-medium border rounded-full border-blue-950  text-blue-950"
+                                        @click="openEdit(task)">
+                                        <svg class="w-6 h-6 mr-2 text-blue-950" fill="none" stroke="currentColor"
                                              viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                   d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6H9v-2l6-6z"/>
@@ -388,30 +418,36 @@ const handleConfirm = () => {
                                     <span>&nbsp;&nbsp;</span>
                                     <span>
                                     <button
-                                        class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-green-600  text-green-650" @click="openTaskDone(task)">
-                                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                               viewBox="0 0 24 24">
-                                          <path
-                                              d="M8 9a3 3 0 100-6 3 3 0 000 6zm5 0a1 1 0 100-2 1 1 0 000 2zm3 4a2 2 0 00-2-2H6a2 2 0 00-2 2v1h12v-1zm-3.586 3.414a1 1 0 00-1.414-1.414L10 17.586l-2.414-2.414a1 1 0 00-1.414 1.414l3.121 3.121a1 1 0 001.414 0l3.121-3.121z"/>
-                                          </svg>
+                                        class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-green-600  text-green-650"
+                                        @click="openTaskDone(task)">
+                                         <svg xmlns="http://www.w3.org/2000/svg"
+                                              fill="currentColor"
+                                              viewBox="0 0 24 24 mr-2"
+                                              class="w-6 h-6 text-green-500">
+                                      <path fill-rule="evenodd"
+                                            d="M12 2a10 10 0 100 20 10 10 0 000-20zM10 14l6-6-1.41-1.41L10 11.17 8.41 9.59 7 11l3 3z"
+                                            clip-rule="evenodd"/>
+                                    </svg>
                                        </button>
                                     </span>
                                     <span>&nbsp;&nbsp;</span>
                                     <span>
                                     <button
-                                        class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-green-600  text-green-650" @click="openAssignCategory(task)">
-                                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                               viewBox="0 0 24 24">
+                                        class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-green-600  text-green-650"
+                                        @click="openAssignCategory(task)">
+                                          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500"
+                                               fill="currentColor"
+                                               viewBox="0 0 24 24 mr-2">
                                           <path
                                               d="M8 9a3 3 0 100-6 3 3 0 000 6zm5 0a1 1 0 100-2 1 1 0 000 2zm3 4a2 2 0 00-2-2H6a2 2 0 00-2 2v1h12v-1zm-3.586 3.414a1 1 0 00-1.414-1.414L10 17.586l-2.414-2.414a1 1 0 00-1.414 1.414l3.121 3.121a1 1 0 001.414 0l3.121-3.121z"/>
                                           </svg>
                                        </button>
                                     </span>
                                     <span>&nbsp;&nbsp;</span>
-                                    <button   @click="deleteTask(task.id)"
-                                        class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-orange-500  text-orange-500">
-                                        <svg class="w-5 h-5 " fill="none" stroke="currentColor"
-                                             viewBox="0 0 24 24">
+                                    <button @click="deleteTask(task.id)"
+                                            class="inline-block  px-3 py-1 text-sm font-medium border rounded-full border-orange-500  text-orange-500">
+                                        <svg class="w-6 h-6 text-orange-500 " fill="none" stroke="currentColor"
+                                             viewBox="0 0 24 24 mr-2">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                   d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
@@ -431,15 +467,14 @@ const handleConfirm = () => {
                                     :show="assignModalVisible"
                                     :task="categoryToEdit"
                                     :category="categories"
-                                    @save="handleSave"
+                                    @save="handleDropSave"
                                     @cancel="assignModalVisible = false"
                                 />
 
                                 <EditTaskDone
                                     :show="openTaskDoneModalVisible"
                                     :task="categoryToEdit"
-                                    :category="categories"
-                                    @save="handleSave"
+                                    @save="handleDropSave"
                                     @cancel="openTaskDoneModalVisible = false"
                                 />
 

@@ -39,6 +39,10 @@ Route::patch('/tasks/{id}/category', [TaskController::class, 'categoryUpdate'])
     ->middleware(['auth', 'verified'])
     ->name('tasks.category');
 
+Route::patch('/tasks/{id}/completed', [TaskController::class, 'completedUpdate'])
+    ->middleware(['auth', 'verified'])
+    ->name('tasks.completed');
+
 
 Route::get('/categories', [CategoryController::class, 'index'])
     ->middleware(['auth', 'verified'])

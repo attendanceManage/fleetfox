@@ -19,7 +19,7 @@ class TaskController extends Controller
         // Allow sorting by 'name' or 'created_at' with direction
         $sortField = in_array($request->input('sort'), ['title', 'created_at']) ? $request->input('sort') : 'created_at';
         $sortDirection = $request->input('direction') === 'asc' ? 'asc' : 'desc';
-        $category =Category::all();
+        $category = Category::all();
 
         $today = \Carbon\Carbon::today();
         $soonThreshold = \Carbon\Carbon::today()->addDays(3);
@@ -71,23 +71,22 @@ class TaskController extends Controller
         ]);
 
 
-            $task = Task::create([
-                'title' => $request->title,
-                'description' => !empty($request->description) ? $request->description : '',
-                'due_date' => \Carbon\Carbon::parse($request->due_date)->format('Y-m-d'),
-                'is_done' => !empty($request->is_done) ? 0 : 1,
-                'status' => !empty($request->status) ? 0 : 1,
-                'created_at' => \Carbon\Carbon::now(),
-                'updated_at' => \Carbon\Carbon::now(),
+        $task = Task::create([
+            'title' => $request->title,
+            'description' => !empty($request->description) ? $request->description : '',
+            'due_date' => \Carbon\Carbon::parse($request->due_date)->format('Y-m-d'),
+            'is_done' => !empty($request->is_done) ? 0 : 1,
+            'status' => !empty($request->status) ? 0 : 1,
+            'created_at' => \Carbon\Carbon::now(),
+            'updated_at' => \Carbon\Carbon::now(),
 
-            ]);
+        ]);
 
         return redirect(route('tasks', absolute: false));
     }
 
 
-
-    public function update(Request $request,$id)
+    public function update(Request $request, $id)
     {
 
         $request->validate([
@@ -101,13 +100,13 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
 
         $task->update([
-            'title' =>  $request->input('title'),
+            'title' => $request->input('title'),
             'description' => $request->input('description'),
             'due_date' => \Carbon\Carbon::parse($request->due_date)->format('Y-m-d'),
             'status' => !empty($request->input('status')) ? 0 : 1,
+            'is_done' => !empty($request->is_done) ? 0 : 1,
             'updated_at' => \Carbon\Carbon::now(),
         ]);
-
 
         return response()->json([
             'message' => 'Task  updated successfully',
@@ -116,20 +115,20 @@ class TaskController extends Controller
     }
 
 
-    public function categoryUpdate(Request $request,$id)
+    public function completedUpdate(Request $request, $id)
     {
-
-        $request->validate([
-            'category_id' => 'required',
-        ]);
-
 
         $task = Task::findOrFail($id);
 
-        $task->update([
-            'category_id' =>  $request->input('category_id')
-        ]);
-
+        if (isset($request->category_id)) {
+            $task->update([
+                'category_id' => isset($request->category_id) ? $request->category_id :'',
+           ]);
+        } else {
+            $task->update([
+                'is_done' => !empty($request->is_done) ? 0 : 1,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Task Category updated successfully',
